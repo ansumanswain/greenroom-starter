@@ -1,16 +1,48 @@
 import { cn } from "@/lib/utils";
 
+/* ------------------------------------------------------------------ */
+/* Status badges                                                       */
+/* ------------------------------------------------------------------ */
+
 type Status = "booked" | "advanced" | "day_of" | "settled" | "closed";
 
-const styles: Record<Status, string> = {
-  booked: "bg-zinc-100 text-zinc-800 ring-zinc-200",
-  advanced: "bg-blue-50 text-blue-800 ring-blue-200",
-  day_of: "bg-amber-50 text-amber-900 ring-amber-200",
-  settled: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  closed: "bg-zinc-50 text-zinc-500 ring-zinc-200",
+const statusStyles: Record<
+  Status,
+  { bg: string; fg: string; ring: string; dot: string }
+> = {
+  booked: {
+    bg: "bg-ink-100",
+    fg: "text-ink-700",
+    ring: "ring-ink-200",
+    dot: "bg-ink-400",
+  },
+  advanced: {
+    bg: "bg-sky-50",
+    fg: "text-sky-800",
+    ring: "ring-sky-200",
+    dot: "bg-sky-700",
+  },
+  day_of: {
+    bg: "bg-amber-50",
+    fg: "text-amber-800",
+    ring: "ring-amber-200",
+    dot: "bg-amber-700",
+  },
+  settled: {
+    bg: "bg-brand-50",
+    fg: "text-brand-800",
+    ring: "ring-brand-200",
+    dot: "bg-brand-700",
+  },
+  closed: {
+    bg: "bg-ink-50",
+    fg: "text-ink-500",
+    ring: "ring-ink-200",
+    dot: "bg-ink-400",
+  },
 };
 
-const labels: Record<Status, string> = {
+const statusLabels: Record<Status, string> = {
   booked: "Booked",
   advanced: "Advanced",
   day_of: "Day of",
@@ -21,29 +53,60 @@ const labels: Record<Status, string> = {
 export function StatusBadge({
   status,
   className,
+  showDot = true,
 }: {
   status: Status;
   className?: string;
+  showDot?: boolean;
 }) {
+  const s = statusStyles[status];
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ring-1 ring-inset",
-        styles[status],
+        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md",
+        "text-[11px] font-medium ring-1 ring-inset",
+        s.bg,
+        s.fg,
+        s.ring,
         className,
       )}
     >
-      {labels[status]}
+      {showDot && <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />}
+      {statusLabels[status]}
     </span>
   );
 }
 
-const dealStyles: Record<string, string> = {
-  flat: "bg-zinc-50 text-zinc-700 ring-zinc-200",
-  percentage_of_gross: "bg-zinc-50 text-zinc-700 ring-zinc-200",
-  percentage_of_net: "bg-orange-50 text-orange-800 ring-orange-200",
-  vs: "bg-orange-50 text-orange-800 ring-orange-200",
-  door: "bg-purple-50 text-purple-800 ring-purple-200",
+/* ------------------------------------------------------------------ */
+/* Deal-type badges                                                    */
+/* ------------------------------------------------------------------ */
+
+const dealStyles: Record<string, { bg: string; fg: string; ring: string }> = {
+  flat: {
+    bg: "bg-ink-50",
+    fg: "text-ink-700",
+    ring: "ring-ink-200",
+  },
+  percentage_of_gross: {
+    bg: "bg-ink-50",
+    fg: "text-ink-700",
+    ring: "ring-ink-200",
+  },
+  percentage_of_net: {
+    bg: "bg-amber-50",
+    fg: "text-amber-800",
+    ring: "ring-amber-200",
+  },
+  vs: {
+    bg: "bg-amber-50",
+    fg: "text-amber-800",
+    ring: "ring-amber-200",
+  },
+  door: {
+    bg: "bg-rose-50",
+    fg: "text-rose-800",
+    ring: "ring-rose-200",
+  },
 };
 
 const dealLabels: Record<string, string> = {
@@ -61,15 +124,53 @@ export function DealTypeBadge({
   type: string;
   className?: string;
 }) {
+  const s = dealStyles[type] ?? dealStyles.flat;
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ring-1 ring-inset",
-        dealStyles[type] ?? "bg-zinc-50 text-zinc-700 ring-zinc-200",
+        "inline-flex items-center px-2 py-0.5 rounded-md",
+        "text-[11px] font-medium ring-1 ring-inset",
+        s.bg,
+        s.fg,
+        s.ring,
         className,
       )}
     >
       {dealLabels[type] ?? type}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Generic plain badge                                                 */
+/* ------------------------------------------------------------------ */
+
+export function PlainBadge({
+  children,
+  variant = "default",
+  className,
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "amber" | "brand" | "rose" | "sky";
+  className?: string;
+}) {
+  const variants = {
+    default: "bg-ink-100 text-ink-700 ring-ink-200",
+    amber: "bg-amber-50 text-amber-800 ring-amber-200",
+    brand: "bg-brand-50 text-brand-800 ring-brand-200",
+    rose: "bg-rose-50 text-rose-800 ring-rose-200",
+    sky: "bg-sky-50 text-sky-800 ring-sky-200",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center px-2 py-0.5 rounded-md",
+        "text-[11px] font-medium ring-1 ring-inset",
+        variants[variant],
+        className,
+      )}
+    >
+      {children}
     </span>
   );
 }

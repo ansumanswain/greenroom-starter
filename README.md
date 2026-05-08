@@ -24,18 +24,21 @@ If you want to inspect the data directly, `npm run db:studio` opens [Drizzle Stu
 
 ## Tour
 
-You log in automatically as **Mariana Reyes**, lead booker at The Crescent (650-cap, Nashville). The app has these surfaces:
+You log in automatically as **Mariana Reyes**, lead booker at The Crescent (650-cap, Nashville). The product has these navigable surfaces:
 
 - **`/shows`** — calendar of upcoming and recent shows. The home view.
 - **`/shows/[id]`** — show detail page. Deal terms, artist info, ticket sales, expenses, settlement.
 - **`/shows/[id]/settle`** — the in-app settlement worksheet. **Try this on a few shows.** You'll quickly see why most bookers default to spreadsheets.
+- **`/artists`** — roster of artists who've played the venue, bucketed by frequency.
+- **`/reports`** — aggregate metrics. The numbers the CEO is watching.
+- **`/context`** — orientation for you, the candidate. Linked from the sidebar.
 
 Recommended path your first time through:
-1. Open `/shows` and pick an upcoming show with a "Vs deal" badge.
-2. Read the deal terms. Note the difference between the structured fields and the free-text "deal notes."
-3. Click "Settle" and see what happens.
-4. Try the same on a flat-guarantee show. Note the difference.
-5. Read `data/transcripts/*.md` and `data/ceo-memo.md` for context.
+1. Open `/context` (the sidebar's "Where to start" link). 5-minute tour.
+2. Then `/shows` and pick a Vs-deal show. Try Settle. See what's broken.
+3. Try Settle on a flat-guarantee show. See what works.
+4. Read `/data/transcripts/*.md` and `/data/ceo-memo.md`.
+5. Look at `/data/dispute-thread.md` and find the matching show in the product (search for "Coastal Spell").
 
 ---
 
@@ -47,10 +50,10 @@ Eighteen months of synthetic operational data, designed to feel like a real venu
 |---|---|---|
 | `shows` | ~370 | Shows over 18 months, with ~30 upcoming |
 | `artists` | ~85 | Mix of recurring and one-off acts |
-| `agents` | ~30 | Across WME, CAA, Wasserman, and independents |
+| `agents` | ~30 | Across WME, CAA, Wasserman, Paradigm, and independents |
 | `deals` | ~370 | One per show. Mix of flat (~25%), vs (~50%), percentage-of-net (~15%), door (~5%), percentage-of-gross (~5%) |
 | `ticket_sales` | hundreds | Per-show, with realistic sell-through distributions |
-| `expenses` | ~1,500 | Sound, lights, hospitality, marketing, production, etc. |
+| `expenses` | ~2000 | Sound, lights, hospitality, marketing, production, etc. |
 | `settlements` | ~340 | Past shows mostly settled. Some have disputes. |
 
 **Two things to know about the data:**
@@ -83,6 +86,7 @@ These aren't decorative. They contain signals the seeded database deliberately d
 - **Next.js 16** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** with shadcn-style component primitives
 - **Drizzle ORM** + **libsql** (pure-JS SQLite — no native compile)
+- **Geist** (Vercel's font, self-hosted via the `geist` package)
 - **lucide-react** for icons, **date-fns** for dates
 
 Everything is deliberately conventional. You can use Cursor, Claude Code, or any other AI tool to navigate and modify this codebase fluently.
@@ -93,8 +97,11 @@ Everything is deliberately conventional. You can use Cursor, Claude Code, or any
 
 ```
 app/
+  context/                  # The candidate orientation page
   shows/                    # Show calendar and detail pages
   shows/[id]/settle/        # The in-app settlement worksheet
+  artists/                  # Artist roster
+  reports/                  # Aggregate metrics
 components/
   ui/                       # Buttons, badges, cards
   layout/sidebar.tsx
