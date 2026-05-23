@@ -1,1 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenroom · Settlement · Vs Deal Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink-900: #0f0f10;
+    --ink-700: #2d2d32;
+    --ink-500: #6b6b75;
+    --ink-400: #8f8f9a;
+    --ink-200: #e0e0e8;
+    --ink-100: #f0f0f4;
+    --canvas: #fafaf9;
+    --canvas-soft: #f4f4f2;
+    --brand-700: #1a6b4a;
+    --brand-600: #1f7d57;
+    --brand-100: #e8f5ee;
+    --brand-50: #f0faf5;
+    --amber-700: #a16207;
+    --amber-100: #fef3c7;
+    --amber-50: #fffbeb;
+    --rose-700: #be123c;
+    --rose-100: #ffe4e6;
+    --rose-50: #fff1f2;
+    --gold: #c9a84c;
+  }
 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--canvas);
+    color: var(--ink-900);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Layout */
+  .shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: #fff;
+    border-right: 1px solid var(--ink-200);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px 18px;
+    border-bottom: 1px solid var(--ink-100);
+    margin-bottom: 12px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--brand-700);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark svg { width: 16px; height: 16px; }
+  .logo-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-900);
+    letter-spacing: -0.01em;
+  }
+
+  .nav-section {
+    padding: 0 10px;
+    margin-bottom: 6px;
+  }
+  .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-400);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-500);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.1s;
+  }
+  .nav-item:hover { background: var(--ink-100); color: var(--ink-700); }
+  .nav-item.active { background: var(--brand-50); color: var(--brand-700); font-weight: 500; }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+  /* Main content */
+  .main {
+    padding: 40px 48px 80px;
+    max-width: 860px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-400);
+    margin-bottom: 28px;
+  }
+  .breadcrumb a { color: var(--ink-400); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--ink-700); }
+  .breadcrumb-sep { color: var(--ink-200); }
+
+  /* Show header */
+  .show-header {
+    margin-bottom: 32px;
+  }
+  .badges {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .badge-green { background: var(--brand-50); color: var(--brand-700); border-color: #c3e6d2; }
+  .badge-amber { background: var(--amber-50); color: var(--amber-700); border-color: #fde68a; }
+  .badge-pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-700); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .show-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 38px;
+    font-weight: 400;
+    color: var(--ink-900);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .show-meta {
+    font-size: 13px;
+    color: var(--ink-400);
+  }
+
+  /* NEW FEATURE CALLOUT */
+  .feature-banner {
+    background: linear-gradient(135deg, #0f2e20 0%, #1a5438 100%);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .feature-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .feature-icon {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feature-icon svg { width: 16px; height: 16px; color: #7dd5a0; }
+  .feature-text { font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.4; }
+  .feature-text strong { color: #fff; font-weight: 600; }
+  .feature-tag {
+    background: var(--gold);
+    color: #1a1a00;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  /* Section cards */
+  .card {
+    background: #fff;
+    border: 1px solid var(--ink-200);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--ink-100);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-900);
+    margin-bottom: 2px;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--ink-400);
+    line-height: 1.4;
+  }
+  .card-body { padding: 16px 20px; }
+  .card-accent-brand { border-top: 2.5px solid var(--brand-700); }
+  .card-accent-amber { border-top: 2.5px solid #f59e0b; }
+
+  /* Deal terms */
+  .deal-terms-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .deal-term {
+    background: var(--canvas-soft);
+    border-radius: 7px;
+    padding: 11px 14px;
+    border: 1px solid var(--ink-100);
+  }
+  .deal-term-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-400);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .deal-term-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-900);
+  }
+  .deal-term-sub {
+    font-size: 11px;
+    color: var(--ink-400);
+    margin-top: 2px;
+  }
+
+  .deal-notes-box {
+    margin-top: 12px;
+    background: var(--canvas-soft);
+    border: 1px solid var(--ink-100);
+    border-radius: 7px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--ink-700);
+    line-height: 1.6;
+  }
+  .deal-notes-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-400);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  /* Ambiguity alert */
+  .ambiguity-alert {
+    margin-top: 12px;
+    background: var(--amber-50);
+    border: 1px solid #fde68a;
+    border-radius: 7px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+  }
+  .ambiguity-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .ambiguity-title { font-size: 12.5px; font-weight: 600; color: var(--amber-700); margin-bottom: 3px; }
+  .ambiguity-body { font-size: 12px; color: #92400e; line-height: 1.5; }
+  .ambiguity-resolve-btn {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--amber-700);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .ambiguity-resolve-btn:hover { background: #854d0e; }
+
+  /* Inputs */
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .input-group { display: flex; flex-direction: column; gap: 5px; }
+  .input-label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-500);
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--ink-200);
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .input-row:focus-within { border-color: var(--brand-600); box-shadow: 0 0 0 2px rgba(31,125,87,0.12); }
+  .input-prefix {
+    padding: 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-400);
+    background: var(--canvas-soft);
+    border-right: 1px solid var(--ink-200);
+    height: 36px;
+    display: flex; align-items: center;
+  }
+  .input-suffix {
+    padding: 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-400);
+    background: var(--canvas-soft);
+    border-left: 1px solid var(--ink-200);
+    height: 36px;
+    display: flex; align-items: center;
+  }
+  input[type="number"], input[type="text"] {
+    border: none;
+    outline: none;
+    padding: 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-900);
+    width: 100%;
+    height: 36px;
+    background: transparent;
+    -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--brand-700); }
+
+  /* Expense rows */
+  .expense-table { width: 100%; border-collapse: collapse; }
+  .expense-table th {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-400);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--ink-100);
+  }
+  .expense-table th:last-child { text-align: right; }
+  .expense-table td {
+    padding: 9px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--ink-100);
+    vertical-align: middle;
+  }
+  .expense-table tr:last-child td { border-bottom: none; }
+  .expense-cat-pill {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+    background: var(--ink-100);
+    color: var(--ink-500);
+  }
+  .expense-amount { 
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    color: var(--ink-900);
+  }
+  .expense-absorbed { color: var(--ink-300); text-decoration: line-through; }
+  .absorbed-tag {
+    font-size: 10px;
+    background: var(--brand-50);
+    color: var(--brand-700);
+    border: 1px solid #c3e6d2;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    font-weight: 500;
+  }
+  .over-cap-tag {
+    font-size: 10px;
+    background: var(--amber-50);
+    color: var(--amber-700);
+    border: 1px solid #fde68a;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    font-weight: 500;
+  }
+
+  /* Worksheet */
+  .worksheet { display: flex; flex-direction: column; }
+  .ws-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--ink-100);
+    gap: 12px;
+  }
+  .ws-row:last-child { border-bottom: none; }
+  .ws-label { font-size: 13px; color: var(--ink-600); flex: 1; }
+  .ws-note { font-size: 11px; color: var(--ink-400); margin-top: 1px; }
+  .ws-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    color: var(--ink-900);
+    white-space: nowrap;
+  }
+  .ws-value.positive { color: var(--brand-700); }
+  .ws-value.negative { color: var(--rose-700); }
+  .ws-value.dim { color: var(--ink-400); }
+  .ws-divider { border-top: 2px solid var(--ink-200); margin: 4px 0; }
+  .ws-total-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 10px 0 4px;
+    gap: 12px;
+  }
+  .ws-total-label { font-size: 13px; font-weight: 600; color: var(--ink-900); }
+  .ws-total-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink-900);
+  }
+
+  /* Hero total */
+  .hero-total {
+    text-align: center;
+    padding: 36px 20px 32px;
+    background: linear-gradient(to bottom, var(--brand-50), #fff);
+    border-bottom: 1px solid var(--ink-100);
+  }
+  .hero-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .hero-amount {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--ink-900);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .hero-formula {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-400);
+    margin-bottom: 12px;
+  }
+  .vs-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brand-50);
+    border: 1px solid #c3e6d2;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--brand-700);
+    font-weight: 500;
+  }
+  .vs-pill.guarantee-wins { background: var(--amber-50); border-color: #fde68a; color: var(--amber-700); }
+  .vs-number { font-family: 'IBM Plex Mono', monospace; font-weight: 700; }
+
+  /* Recoup interpretation */
+  .interp-card {
+    background: #fff;
+    border: 1px solid var(--ink-200);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .interp-header {
+    padding: 14px 18px 12px;
+    background: #fff8ed;
+    border-bottom: 1px solid #fde68a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .interp-title { font-size: 13px; font-weight: 600; color: var(--amber-700); }
+  .interp-body { padding: 14px 18px; }
+  .interp-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ink-100);
+  }
+  .interp-row:last-child { border-bottom: none; }
+  .interp-option-label { font-size: 12px; font-weight: 600; color: var(--ink-700); margin-bottom: 2px; }
+  .interp-option-desc { font-size: 11.5px; color: var(--ink-400); margin-bottom: 4px; }
+  .interp-impact { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .interp-impact.more { color: var(--brand-700); }
+  .interp-impact.less { color: var(--rose-700); }
+
+  /* Radio */
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .radio-opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 1.5px solid var(--ink-200);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--ink-600);
+    transition: all 0.1s;
+    background: #fff;
+  }
+  .radio-opt:hover { border-color: var(--brand-600); color: var(--brand-700); }
+  .radio-opt.selected { border-color: var(--brand-600); background: var(--brand-50); color: var(--brand-700); font-weight: 500; }
+  .radio-opt input { display: none; }
+
+  /* Signoff section */
+  .signoff-area {
+    border-top: 1px solid var(--ink-100);
+    padding: 16px 20px;
+  }
+  .signoff-label { font-size: 11.5px; font-weight: 500; color: var(--ink-500); margin-bottom: 8px; }
+  .signoff-input {
+    width: 100%;
+    border: 1.5px solid var(--ink-200);
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-900);
+    resize: none;
+    height: 70px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .signoff-input:focus { border-color: var(--brand-600); box-shadow: 0 0 0 2px rgba(31,125,87,0.1); }
+  .signoff-btn {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--brand-700);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 18px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .signoff-btn:hover { background: var(--brand-600); }
+  .signoff-btn:disabled { background: var(--ink-300); cursor: default; }
+
+  /* Audit trail */
+  .audit-trail { list-style: none; }
+  .audit-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--ink-100);
+    font-size: 12.5px;
+  }
+  .audit-item:last-child { border-bottom: none; }
+  .audit-time { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-400); white-space: nowrap; min-width: 90px; margin-top: 1px; }
+  .audit-event { color: var(--ink-700); line-height: 1.4; }
+  .audit-event strong { color: var(--ink-900); font-weight: 500; }
+
+  /* Agent preview */
+  .agent-preview {
+    background: #f8f8fa;
+    border: 1px solid var(--ink-200);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 12.5px;
+    color: var(--ink-700);
+    line-height: 1.7;
+    font-family: 'IBM Plex Mono', monospace;
+    white-space: pre-wrap;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--ink-200);
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 9px 14px;
+    font-size: 12.5px;
+    color: var(--ink-400);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-weight: 400;
+  }
+  .tab:hover { color: var(--ink-700); }
+  .tab.active { color: var(--brand-700); border-bottom-color: var(--brand-700); font-weight: 500; }
+
+  /* Bottom action bar */
+  .action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 220px;
+    right: 0;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--ink-200);
+    padding: 14px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+  }
+  .action-bar-left { font-size: 12.5px; color: var(--ink-400); }
+  .action-bar-left strong { color: var(--ink-900); font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+  .action-bar-right { display: flex; gap: 8px; align-items: center; }
+  .btn-ghost {
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-600);
+    background: transparent;
+    border: 1px solid var(--ink-200);
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: var(--ink-400); color: var(--ink-900); }
+  .btn-primary {
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--brand-700);
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .btn-primary:hover { background: var(--brand-600); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    background: var(--ink-900);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 999;
+    transform: translateY(-80px);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .toast.show { transform: translateY(0); }
+  .toast-icon { font-size: 14px; }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  /* Responsive compact */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .action-bar { left: 0; }
+    .main { padding: 24px 20px 100px; }
+    .deal-terms-grid { grid-template-columns: 1fr 1fr; }
+    .input-grid { grid-template-columns: 1fr; }
+    .hero-amount { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">
+  <span class="toast-icon">✓</span>
+  <span id="toast-msg">Settlement sent to agent</span>
+</div>
+
+<div class="shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8 L8 3 L13 8 L8 13 Z" fill="white" opacity="0.9"/><circle cx="8" cy="8" r="2" fill="white"/></svg>
+      </div>
+      <span class="logo-text">Greenroom</span>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Booking</div>
+      <a class="nav-item" href="#">Shows</a>
+      <a class="nav-item" href="#">Artists</a>
+      <a class="nav-item" href="#">Calendar</a>
+    </div>
+    <div class="nav-section" style="margin-top:8px;">
+      <div class="nav-label">Operations</div>
+      <a class="nav-item active" href="#">Settlement ←</a>
+      <a class="nav-item" href="#">Advancing</a>
+      <a class="nav-item" href="#">Hospitality</a>
+    </div>
+    <div class="nav-section" style="margin-top:8px;">
+      <div class="nav-label">Analytics</div>
+      <a class="nav-item" href="#">Reports</a>
+      <a class="nav-item" href="#">Sponsors</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">Shows</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="#">The Midnight Echo</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Settle</span>
+    </div>
+
+    <!-- Feature banner -->
+    <div class="feature-banner">
+      <div class="feature-banner-left">
+        <div class="feature-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8h3l2-5 2 10 2-5h3"/></svg>
+        </div>
+        <div class="feature-text">
+          <strong>Vs deal support is here.</strong> This deal type used to send Mariana to a Google Sheet at 2am. Now the math lives here — traceable, shareable, and dispute-ready.
+        </div>
+      </div>
+      <div class="feature-tag">NEW</div>
+    </div>
+
+    <!-- Show header -->
+    <div class="show-header">
+      <div class="badges">
+        <span class="badge badge-green"><span class="badge-pulse"></span> Night of show</span>
+        <span class="badge badge-amber">Vs deal</span>
+        <span class="badge" style="background:var(--ink-100);color:var(--ink-500);border-color:var(--ink-200);">Fri, May 23 · 650 cap</span>
+      </div>
+      <h1 class="show-title">Settlement · The Midnight Echo</h1>
+      <div class="show-meta">The Crescent · Nashville · Mariana Reyes, booker</div>
+    </div>
+
+    <!-- Deal Terms -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Deal terms</div>
+          <div class="card-desc">From the signed deal memo. Structured fields confirmed against Mariana's notes.</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="deal-terms-grid">
+          <div class="deal-term">
+            <div class="deal-term-label">Guarantee</div>
+            <div class="deal-term-value">$5,000</div>
+            <div class="deal-term-sub">Floor — artist gets at least this</div>
+          </div>
+          <div class="deal-term">
+            <div class="deal-term-label">Vs split</div>
+            <div class="deal-term-value">80% net</div>
+            <div class="deal-term-sub">After platform fees + expenses</div>
+          </div>
+          <div class="deal-term">
+            <div class="deal-term-label">Expense cap</div>
+            <div class="deal-term-value">$2,500</div>
+            <div class="deal-term-sub">Venue expenses passed through</div>
+          </div>
+        </div>
+
+        <div class="deal-notes-box">
+          <div class="deal-notes-eyebrow">📋 Deal notes (Mariana's source of truth)</div>
+          $5,000 guarantee vs 80% of net after expenses, whichever greater. Expenses capped $2,500. Hospitality cap $400 — any overage absorbed by venue. Marketing recoup of $900 per deal email (see: interpretation below). Performance bonus: +$600 if gross &gt; $22,000.
+        </div>
+
+        <!-- Ambiguity alert - the core UX innovation -->
+        <div class="ambiguity-alert" id="ambiguity-alert">
+          <div class="ambiguity-icon">⚠️</div>
+          <div>
+            <div class="ambiguity-title">Deal term needs interpretation — resolve before 11pm</div>
+            <div class="ambiguity-body">
+              The deal email says <em>"marketing recoup of $900"</em> but doesn't specify: inside the $2,500 expense cap, or a separate deduction off gross? This is the same ambiguity that cost The Crescent $720 on the Coastal Spell show in March. Resolving it now (Wednesday) with the agent is far cheaper than resolving it at 2am Saturday with the TM.
+            </div>
+            <div style="margin-top:8px;">
+              <div style="font-size:11.5px; font-weight:600; color:#92400e; margin-bottom:6px;">How should the $900 marketing recoup be treated?</div>
+              <div class="radio-group">
+                <label class="radio-opt" id="opt-inside" onclick="selectInterp('inside')">
+                  <input type="radio" name="interp" value="inside">
+                  Inside expense cap (agent's read)
+                </label>
+                <label class="radio-opt" id="opt-outside" onclick="selectInterp('outside')">
+                  <input type="radio" name="interp" value="outside">
+                  Separate deduction off gross (venue's read)
+                </label>
+              </div>
+              <div id="interp-impact" style="margin-top:8px; font-size:12px; color:var(--ink-400); display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="resolved-banner" style="display:none; margin-top:12px; background:var(--brand-50); border:1px solid #c3e6d2; border-radius:7px; padding:10px 14px; font-size:12.5px; color:var(--brand-700);">
+          ✓ <strong>Marketing recoup interpretation locked</strong> — recorded and visible to agent. No ambiguity at 2am.
+        </div>
+      </div>
+    </div>
+
+    <!-- Box Office + Inputs -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Box office</div>
+          <div class="card-desc">Live from POS · Last synced 11:47pm</div>
+        </div>
+        <span style="font-size:11px; background:#e8f5ee; color:var(--brand-700); padding:3px 8px; border-radius:4px; font-weight:500;">● Live</span>
+      </div>
+      <div class="card-body">
+        <div class="input-grid">
+          <div class="input-group">
+            <div class="input-label">Gross box office</div>
+            <div class="input-row">
+              <span class="input-prefix">$</span>
+              <input type="number" id="gross" value="19840" oninput="recalc()">
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Platform + CC fees</div>
+            <div class="input-row">
+              <span class="input-prefix">$</span>
+              <input type="number" id="fees" value="1984" oninput="recalc()">
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Tickets sold</div>
+            <div class="input-row">
+              <input type="number" id="tickets" value="512" oninput="recalc()">
+              <span class="input-suffix">/ 650</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Comps (excluded from gross)</div>
+            <div class="input-row">
+              <input type="number" id="comps" value="18" oninput="recalc()">
+              <span class="input-suffix">tickets</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expenses -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Expenses</div>
+          <div class="card-desc">All categorized · absorbed items don't reduce artist payout</div>
+        </div>
+        <span id="expenses-total-badge" style="font-size:11.5px; font-family:monospace; font-weight:600; color:var(--ink-700);">$2,714 entered</span>
+      </div>
+      <div class="card-body" style="padding-top:12px;">
+        <table class="expense-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Description</th>
+              <th style="text-align:right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="expense-rows">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+        <div id="cap-warning" style="display:none; margin-top:10px; background:var(--amber-50); border:1px solid #fde68a; border-radius:6px; padding:9px 12px; font-size:12px; color:var(--amber-700);">
+          ⚠️ <strong>Passed-through expenses exceed the $2,500 cap.</strong> <span id="cap-warning-text"></span> The venue absorbs the overage.
+        </div>
+      </div>
+    </div>
+
+    <!-- Settlement Worksheet — the core feature -->
+    <div class="card card-accent-brand">
+      <div class="hero-total">
+        <div class="hero-eyebrow">Total to artist</div>
+        <div class="hero-amount" id="hero-amount">$—</div>
+        <div class="hero-formula" id="hero-formula">calculating...</div>
+        <div id="vs-indicator" class="vs-pill" style="margin-top:0;">
+          <span id="vs-winner-label">—</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="worksheet" id="worksheet-rows">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Recoups -->
+    <div class="card" id="recoups-card" style="display:none;">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Recoups</div>
+          <div class="card-desc">Off-the-top line items negotiated in the deal. Each has a status.</div>
+        </div>
+      </div>
+      <div class="card-body" id="recoups-body"></div>
+    </div>
+
+    <!-- Tabs: Audit trail / Agent preview -->
+    <div class="card">
+      <div class="card-body" style="padding-bottom:0;">
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('audit', this)">Audit trail</div>
+          <div class="tab" onclick="switchTab('agent', this)">Agent preview</div>
+        </div>
+        <div id="tab-audit">
+          <ul class="audit-trail">
+            <li class="audit-item">
+              <span class="audit-time">Wed 12:04pm</span>
+              <span class="audit-event"><strong>Deal terms entered</strong> by Mariana · $5K vs 80% net, expense cap $2,500</span>
+            </li>
+            <li class="audit-item">
+              <span class="audit-time">Wed 3:17pm</span>
+              <span class="audit-event"><strong>Ambiguity flagged</strong> · Marketing recoup interpretation — sent clarification request to agent</span>
+            </li>
+            <li class="audit-item">
+              <span class="audit-time">Thu 10:02am</span>
+              <span class="audit-event" id="interp-audit-entry"><strong>Interpretation pending</strong> · Marketing recoup: resolve before show night</span>
+            </li>
+            <li class="audit-item">
+              <span class="audit-time">Fri 11:47pm</span>
+              <span class="audit-event"><strong>Box office synced</strong> from POS · $19,840 gross, 512 tickets, $1,984 fees</span>
+            </li>
+            <li class="audit-item">
+              <span class="audit-time">Fri 11:51pm</span>
+              <span class="audit-event"><strong>Expenses finalized</strong> · $2,714 entered; $214 over cap absorbed by venue</span>
+            </li>
+            <li class="audit-item" id="audit-calc">
+              <span class="audit-time">Fri 11:52pm</span>
+              <span class="audit-event" id="audit-calc-text"><strong>Settlement calculated</strong> · <span id="audit-total">pending</span> · Vs deal: percentage wins</span>
+            </li>
+          </ul>
+        </div>
+        <div id="tab-agent" style="display:none; padding-bottom:4px;">
+          <div style="font-size:12px; color:var(--ink-400); margin-bottom:10px;">This is what Sarah Kim at WME receives the morning after. Every line traceable back to a source.</div>
+          <div class="agent-preview" id="agent-preview-text">calculating...</div>
+          <div style="margin-top:10px; display:flex; gap:8px;">
+            <button class="btn-ghost" style="font-size:12px;">📋 Copy</button>
+            <button class="btn-ghost" style="font-size:12px;">📤 Export PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signoff -->
+      <div class="signoff-area">
+        <div class="signoff-label">TM sign-off (captured in-room)</div>
+        <textarea class="signoff-input" id="signoff-input" placeholder="Type the tour manager's verbal sign-off here — e.g. "Looks good. Wire Monday." This becomes part of the record."></textarea>
+        <button class="signoff-btn" id="signoff-btn" onclick="signOff()">
+          <span>✓</span> Record sign-off &amp; lock settlement
+        </button>
+      </div>
+    </div>
+
+    <div style="height:80px;"></div>
+  </main>
+</div>
+
+<!-- Bottom action bar -->
+<div class="action-bar">
+  <div class="action-bar-left">
+    Total to artist: <strong id="bar-total">$—</strong>
+  </div>
+  <div class="action-bar-right">
+    <button class="btn-ghost" onclick="showToast('Settlement exported as PDF')">Export PDF</button>
+    <button class="btn-ghost" onclick="showToast('Link copied — agent can view this settlement')">Share with agent</button>
+    <button class="btn-primary" onclick="showToast('Settlement submitted for GM approval')">Submit to GM →</button>
+  </div>
+</div>
+
+<script>
+// State
+const DEAL = {
+  guarantee: 5000,
+  pct: 0.80,
+  expenseCap: 2500,
+  hospCap: 400,
+  bonus: { threshold: 22000, amount: 600 },
+  marketingRecoup: 900,
+};
+
+const EXPENSES = [
+  { id: 1, cat: 'sound', desc: 'Sound engineer', amount: 850, absorbed: false },
+  { id: 2, cat: 'lights', desc: 'Lighting rig + operator', amount: 600, absorbed: false },
+  { id: 3, cat: 'production', desc: 'Stage manager', amount: 300, absorbed: false },
+  { id: 4, cat: 'hospitality', desc: 'Green room rider', amount: 400, absorbed: false },
+  { id: 5, cat: 'hospitality', desc: 'Whiskey overage (vs $400 cap)', amount: 214, absorbed: true }, // absorbed
+  { id: 6, cat: 'security', desc: 'Door + floor security', amount: 350, absorbed: false },
+];
+
+let marketingInterpretation = null; // 'inside' | 'outside' | null
+let signedOff = false;
+
+function getGross() { return parseFloat(document.getElementById('gross').value) || 0; }
+function getFees() { return parseFloat(document.getElementById('fees').value) || 0; }
+function getTickets() { return parseFloat(document.getElementById('tickets').value) || 0; }
+
+function fmt(n) {
+  return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderExpenses() {
+  const tbody = document.getElementById('expense-rows');
+  let totalPassed = 0;
+  let totalAbsorbed = 0;
+  tbody.innerHTML = '';
+  EXPENSES.forEach(e => {
+    const tr = document.createElement('tr');
+    const isOver = e.id === 5; // hospitality overage
+    if (!e.absorbed) totalPassed += e.amount;
+    else totalAbsorbed += e.amount;
+    tr.innerHTML = `
+      <td><span class="expense-cat-pill">${e.cat}</span></td>
+      <td style="color:${e.absorbed?'var(--ink-400)':'var(--ink-700)'};">
+        ${e.desc}
+        ${e.absorbed ? '<span class="absorbed-tag">absorbed by venue</span>' : ''}
+        ${isOver ? '<span class="over-cap-tag">over hosp. cap</span>' : ''}
+      </td>
+      <td class="expense-amount ${e.absorbed?'expense-absorbed':''}">${fmt(e.amount)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Add marketing recoup row if it exists
+  if (marketingInterpretation) {
+    // Show marketing recoup in expenses section only if "inside" cap interpretation
+    if (marketingInterpretation === 'inside') {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="expense-cat-pill" style="background:#fff3cd;color:#856404;">marketing</span></td>
+        <td style="color:var(--ink-700);">Marketing recoup <span style="font-size:10px;background:#e8f5ee;color:var(--brand-700);padding:1px 5px;border-radius:3px;border:1px solid #c3e6d2;">inside cap · agreed</span></td>
+        <td class="expense-amount">${fmt(DEAL.marketingRecoup)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  document.getElementById('expenses-total-badge').textContent = fmt(totalPassed + totalAbsorbed) + ' entered';
+
+  // Cap warning
+  const cappedPassed = Math.min(totalPassed, DEAL.expenseCap);
+  if (totalPassed > DEAL.expenseCap) {
+    document.getElementById('cap-warning').style.display = 'block';
+    document.getElementById('cap-warning-text').textContent = `${fmt(totalPassed)} entered vs ${fmt(DEAL.expenseCap)} cap. Venue absorbs the ${fmt(totalPassed - DEAL.expenseCap)} overage.`;
+  } else {
+    document.getElementById('cap-warning').style.display = 'none';
+  }
+}
+
+function recalc() {
+  const gross = getGross();
+  const fees = getFees();
+  const tickets = getTickets();
+
+  // Expenses (passed through, capped)
+  const rawPassed = EXPENSES.filter(e => !e.absorbed).reduce((s,e) => s+e.amount, 0);
+
+  // Marketing recoup logic
+  let grossDeduction = fees; // always deduct fees from gross to get net
+  let expensePassthrough = rawPassed;
+  let marketingNote = '';
+
+  if (marketingInterpretation === 'outside') {
+    // Marketing recoup is a separate deduction off gross BEFORE net calc
+    grossDeduction = fees + DEAL.marketingRecoup;
+    marketingNote = 'Marketing recoup deducted from gross (separate from cap)';
+  } else if (marketingInterpretation === 'inside') {
+    // Marketing recoup is inside the cap — already added to rawPassed
+    expensePassthrough = rawPassed + DEAL.marketingRecoup;
+    marketingNote = 'Marketing recoup inside expense cap';
+  }
+
+  const net = gross - grossDeduction;
+  const cappedExpenses = Math.min(expensePassthrough, DEAL.expenseCap);
+  const netAfterExpenses = net - cappedExpenses;
+  const pctPayout = netAfterExpenses * DEAL.pct;
+  const bonusApplied = gross >= DEAL.bonus.threshold ? DEAL.bonus.amount : 0;
+
+  const pctTotal = pctPayout + bonusApplied;
+  const guaranteeWins = DEAL.guarantee >= pctTotal;
+  const artistTotal = Math.max(DEAL.guarantee, pctTotal);
+
+  // Render worksheet
+  const ws = document.getElementById('worksheet-rows');
+  const rows = [];
+
+  rows.push({ label: 'Gross box office', value: gross, note: `${tickets} tickets + ${document.getElementById('comps').value||0} comps` });
+  rows.push({ label: '— Platform & CC fees (10%)', value: -fees, note: 'Per ticketing platform agreement' });
+  if (marketingInterpretation === 'outside') {
+    rows.push({ label: '— Marketing recoup (off gross)', value: -DEAL.marketingRecoup, note: 'Separate deduction per deal terms — locked ' + (marketingInterpretation ? '✓' : '') });
+  }
+  rows.push({ label: `= Net box office`, value: net, note: '', bold: true });
+  rows.push({ label: `— Expenses (capped at ${fmt(DEAL.expenseCap)})`, value: -cappedExpenses, note: marketingInterpretation === 'inside' ? 'Includes $900 marketing recoup · ' + marketingNote : 'Sound, lights, production, security' });
+  rows.push({ label: `= Net after expenses`, value: netAfterExpenses, note: '', bold: true });
+  rows.push({ label: `× ${(DEAL.pct*100).toFixed(0)}% artist split`, value: pctPayout, note: '' });
+  if (bonusApplied) {
+    rows.push({ label: `+ Performance bonus (gross ≥ ${fmt(DEAL.bonus.threshold)})`, value: bonusApplied, note: `Gross was ${fmt(gross)} — triggered ✓` });
+  } else {
+    rows.push({ label: `Performance bonus (gross ≥ ${fmt(DEAL.bonus.threshold)})`, value: 0, note: `Gross ${fmt(gross)} < ${fmt(DEAL.bonus.threshold)} — not triggered`, dim: true });
+  }
+  rows.push({ label: `= % pathway total`, value: pctTotal, note: '', bold: true });
+
+  let html = '';
+  rows.forEach(r => {
+    const valClass = r.value < 0 ? 'negative' : r.value === 0 ? 'dim' : '';
+    const valStr = r.value === 0 ? 'n/a' : (r.value < 0 ? '-' : '') + fmt(Math.abs(r.value));
+    html += `<div class="ws-row">
+      <div>
+        <div class="ws-label" style="${r.bold?'font-weight:600;color:var(--ink-900);':''} ${r.dim?'color:var(--ink-400);':''}">
+          ${r.label}
+        </div>
+        ${r.note ? `<div class="ws-note">${r.note}</div>` : ''}
+      </div>
+      <div class="ws-value ${valClass} ${r.dim?'dim':''}" style="${r.bold?'font-weight:600;':''}">${valStr}</div>
+    </div>`;
+  });
+
+  // Divider + vs comparison
+  html += `<div class="ws-divider"></div>`;
+  html += `<div class="ws-row">
+    <div class="ws-label" style="${guaranteeWins?'':'color:var(--ink-400);'}">Guarantee pathway: ${fmt(DEAL.guarantee)} ${guaranteeWins?'← wins':''}</div>
+    <div class="ws-value ${guaranteeWins?'':'dim'}">${fmt(DEAL.guarantee)}</div>
+  </div>`;
+  html += `<div class="ws-row">
+    <div class="ws-label" style="${!guaranteeWins?'':'color:var(--ink-400);'}">Percentage pathway: ${fmt(pctTotal)} ${!guaranteeWins?'← wins':''}</div>
+    <div class="ws-value ${!guaranteeWins?'':'dim'}">${fmt(pctTotal)}</div>
+  </div>`;
+  html += `<div class="ws-divider"></div>`;
+  html += `<div class="ws-total-row">
+    <div class="ws-total-label">Total to artist (whichever greater)</div>
+    <div class="ws-total-value">${fmt(artistTotal)}</div>
+  </div>`;
+
+  ws.innerHTML = html;
+
+  // Hero
+  document.getElementById('hero-amount').textContent = fmt(artistTotal);
+  const vsEl = document.getElementById('vs-indicator');
+  if (guaranteeWins) {
+    document.getElementById('vs-winner-label').textContent = `Guarantee wins · ${fmt(DEAL.guarantee)} vs ${fmt(pctTotal)} pct`;
+    vsEl.className = 'vs-pill guarantee-wins';
+  } else {
+    document.getElementById('vs-winner-label').textContent = `% pathway wins · ${fmt(pctTotal)} vs ${fmt(DEAL.guarantee)} guarantee`;
+    vsEl.className = 'vs-pill';
+  }
+
+  const formulaBase = `max(${fmt(DEAL.guarantee)}, ${(DEAL.pct*100).toFixed(0)}% × net)`;
+  document.getElementById('hero-formula').textContent = marketingInterpretation ? formulaBase : formulaBase + ' · resolve recoup interpretation to finalize';
+
+  // Bar
+  document.getElementById('bar-total').textContent = fmt(artistTotal);
+
+  // Audit
+  document.getElementById('audit-total').textContent = fmt(artistTotal);
+
+  // Agent preview
+  updateAgentPreview(gross, fees, cappedExpenses, pctPayout, bonusApplied, pctTotal, artistTotal, guaranteeWins, netAfterExpenses, net, marketingInterpretation);
+}
+
+function updateAgentPreview(gross, fees, cappedExp, pctPayout, bonus, pctTotal, artistTotal, guaranteeWins, netAfterExp, net, interp) {
+  const d = new Date();
+  const dateStr = d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+  let interpLine = interp
+    ? (interp === 'inside' ? `Marketing recoup ($900): inside expense cap — agreed with agent ${interp==='inside'?'✓':''}` : `Marketing recoup ($900): separate gross deduction — agreed with agent ✓`)
+    : `Marketing recoup ($900): PENDING INTERPRETATION — see deal notes`;
+
+  const preview = `SETTLEMENT STATEMENT
+The Crescent · Nashville
+${dateStr}
+
+Artist: The Midnight Echo
+Deal: $5,000 guarantee vs 80% net after expenses
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BOX OFFICE
+Gross:                ${fmt(gross)}
+Platform + CC fees:   -${fmt(fees)}
+Net box office:        ${fmt(net)}
+
+EXPENSES (capped $2,500)
+Sound & lights:       -$1,450.00
+Production & security:-$650.00
+${interp==='inside' ? 'Marketing recoup:     -$900.00 (inside cap)' : ''}
+Total passed through: -${fmt(cappedExp)}
+${interp==='outside' ? '\nMarketing recoup (off gross): -$900.00' : ''}
+
+SETTLEMENT MATH
+Net after expenses:    ${fmt(netAfterExp)}
+× 80% artist split:    ${fmt(pctPayout)}
+${bonus > 0 ? `+ Performance bonus:   +${fmt(bonus)}` : ''}
+
+% pathway total:       ${fmt(pctTotal)}
+Guarantee:             ${fmt(5000)}
+Artist receives (greater of): ${fmt(artistTotal)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL TO ARTIST:       ${fmt(artistTotal)}
+Wire by:               Monday 9am
+
+Interpretation on file:
+${interpLine}
+
+Questions? mariana@thecrescentnashville.com
+Receipts available on request.`;
+
+  document.getElementById('agent-preview-text').textContent = preview;
+}
+
+function selectInterp(val) {
+  marketingInterpretation = val;
+  document.getElementById('opt-inside').className = 'radio-opt' + (val==='inside' ? ' selected' : '');
+  document.getElementById('opt-outside').className = 'radio-opt' + (val==='outside' ? ' selected' : '');
+
+  const gross = getGross();
+  const fees = getFees();
+  const rawPassed = EXPENSES.filter(e => !e.absorbed).reduce((s,e) => s+e.amount, 0);
+
+  let pctPathway, label;
+  if (val === 'inside') {
+    const net = gross - fees;
+    const exp = Math.min(rawPassed + DEAL.marketingRecoup, DEAL.expenseCap);
+    pctPathway = (net - exp) * DEAL.pct;
+    label = `<span class="interp-impact ${pctPathway > 5000 ? 'more' : 'less'}">Artist gets ${fmt(Math.max(5000, pctPathway))} → ${fmt(pctPathway)} pct pathway</span>`;
+  } else {
+    const net = gross - fees - DEAL.marketingRecoup;
+    const exp = Math.min(rawPassed, DEAL.expenseCap);
+    pctPathway = (net - exp) * DEAL.pct;
+    label = `<span class="interp-impact ${pctPathway > 5000 ? 'more' : 'less'}">Artist gets ${fmt(Math.max(5000, pctPathway))} → ${fmt(pctPathway)} pct pathway</span>`;
+  }
+
+  const impactDiv = document.getElementById('interp-impact');
+  impactDiv.innerHTML = `<strong>Impact:</strong> ${label} — difference is ${fmt(Math.abs(
+    val === 'inside'
+      ? (Math.max(5000, (gross-fees-Math.min(rawPassed+DEAL.marketingRecoup,DEAL.expenseCap))*0.8)) - (Math.max(5000, (gross-fees-DEAL.marketingRecoup-Math.min(rawPassed,DEAL.expenseCap))*0.8))
+      : 0
+  ))} depending on interpretation.`;
+  impactDiv.style.display = 'block';
+
+  // Hide ambiguity, show resolved
+  document.getElementById('ambiguity-alert').style.display = 'none';
+  document.getElementById('resolved-banner').style.display = 'block';
+
+  // Update audit trail
+  document.getElementById('interp-audit-entry').innerHTML = `<strong>Interpretation locked</strong> · Marketing recoup: ${val === 'inside' ? 'inside expense cap' : 'separate gross deduction'} — agreed with agent, logged`;
+
+  renderExpenses();
+  recalc();
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-audit').style.display = tab === 'audit' ? '' : 'none';
+  document.getElementById('tab-agent').style.display = tab === 'agent' ? '' : 'none';
+}
+
+function signOff() {
+  const text = document.getElementById('signoff-input').value.trim();
+  if (!text) {
+    document.getElementById('signoff-input').focus();
+    document.getElementById('signoff-input').style.borderColor = '#ef4444';
+    setTimeout(() => document.getElementById('signoff-input').style.borderColor = '', 1500);
+    return;
+  }
+  signedOff = true;
+  document.getElementById('signoff-btn').disabled = true;
+  document.getElementById('signoff-btn').textContent = '✓ Sign-off recorded';
+  
+  // Add to audit trail
+  const ul = document.querySelector('.audit-trail');
+  const li = document.createElement('li');
+  li.className = 'audit-item';
+  li.innerHTML = `<span class="audit-time">Just now</span>
+    <span class="audit-event"><strong>TM sign-off recorded</strong> · "${text}" — settlement locked, wire queued for Monday</span>`;
+  ul.appendChild(li);
+
+  showToast('Sign-off recorded. Settlement locked.');
+}
+
+function showToast(msg) {
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Init
+renderExpenses();
+recalc();
+</script>
+</body>
+</html>
